@@ -1,3 +1,14 @@
+"""
+Advanced Machine Learning GUI for Robotics Applications
+Student ID: 20067912
+
+Key Features:
+1. Comprehensive classical ML algorithms
+2. Deep learning with customizable architectures
+3. Advanced dimensionality reduction techniques
+4. Reinforcement learning environments
+5. Specialized tools for robotics applications
+"""
 import sys
 import numpy as np
 import pandas as pd
@@ -343,15 +354,14 @@ class MLCourseGUI(QMainWindow):
             self.show_error(f"Error: {str(e)}")
 
     def create_tabs(self):
-        """Create tabs for different ML topics including new advanced tab"""
+        """Create tabs for different ML topics"""
         self.tab_widget = QTabWidget()
 
         tabs = [
             ("Classical ML", self.create_classical_ml_tab),
             ("Deep Learning", self.create_deep_learning_tab),
             ("Dimensionality Reduction", self.create_dim_reduction_tab),
-            ("Reinforcement Learning", self.create_rl_tab),
-            ("Advanced Features", self.create_advanced_tab)  # New tab added here
+            ("Reinforcement Learning", self.create_rl_tab)
         ]
 
         for tab_name, create_func in tabs:
@@ -363,72 +373,6 @@ class MLCourseGUI(QMainWindow):
 
         self.layout.addWidget(self.tab_widget)
 
-    def create_advanced_tab(self):
-        """Create the new advanced features tab"""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        # Add all the new advanced components here
-        self.create_dim_reduction_advanced_group(layout)
-        self.create_clustering_advanced_group(layout)
-        self.create_validation_advanced_group(layout)
-        self.create_eigenvector_group(layout)
-
-        return widget
-
-    def create_dim_reduction_advanced_group(self, parent_layout):
-        """Advanced dimensionality reduction components"""
-        group = QGroupBox("Advanced Dimensionality Reduction")
-        layout = QGridLayout()
-
-        # PCA with Explained Variance
-        pca_group = QGroupBox("PCA with Explained Variance")
-        pca_layout = QVBoxLayout()
-
-        self.pca_var_slider = QSlider(Qt.Orientation.Horizontal)
-        self.pca_var_slider.setRange(1, 100)
-        self.pca_var_slider.setValue(95)
-
-        self.pca_var_label = QLabel("Variance Threshold: 95%")
-        self.pca_var_slider.valueChanged.connect(
-            lambda: self.pca_var_label.setText(f"Variance Threshold: {self.pca_var_slider.value()}%")
-        )
-
-        pca_btn = QPushButton("Run PCA with Variance Threshold")
-        pca_btn.clicked.connect(self.run_pca_with_variance)
-
-        pca_layout.addWidget(self.pca_var_label)
-        pca_layout.addWidget(self.pca_var_slider)
-        pca_layout.addWidget(pca_btn)
-        pca_group.setLayout(pca_layout)
-        layout.addWidget(pca_group, 0, 0)
-
-        # [Rest of the advanced dimensionality reduction components...]
-
-        group.setLayout(layout)
-        parent_layout.addWidget(group)
-
-    def create_clustering_advanced_group(self, parent_layout):
-        """Advanced clustering components"""
-        group = QGroupBox("Advanced Clustering Techniques")
-        layout = QGridLayout()
-
-        # K-Means with Elbow Method
-        elbow_group = QGroupBox("K-Means with Elbow Method")
-        elbow_layout = QVBoxLayout()
-
-        self.max_clusters_spin = QSpinBox()
-        self.max_clusters_spin.setRange(2, 20)
-        self.max_clusters_spin.setValue(10)
-
-        elbow_btn = QPushButton("Find Optimal Clusters (Elbow Method)")
-        elbow_btn.clicked.connect(self.run_elbow_method)
-
-        elbow_layout.addWidget(QLabel("Max Clusters:"))
-        elbow_layout.addWidget(self.max_clusters_spin)
-        elbow_layout.addWidget(elbow_btn)
-        elbow_group.setLayout(elbow_layout)
-        layout.addWidget(elbow_group, 0, 0)
     def create_classical_ml_tab(self):
         """Create classical ML tab with all algorithms"""
         widget = QWidget()
@@ -1969,76 +1913,169 @@ class DQNAgent:
             target_f[0][action] = target
             self.model.fit(state, target_f, epochs=1, verbose=0)
 
+    def create_tabs(self):
+        """Create tabs for different ML topics including new advanced tab"""
+        self.tab_widget = QTabWidget()
 
-    def run_pca_with_variance(self):
-    """Run PCA with explained variance threshold"""
-    if self.X_train is None:
-        self.show_error("Please load data first!")
-        return
+        tabs = [
+            ("Classical ML", self.create_classical_ml_tab),
+            ("Deep Learning", self.create_deep_learning_tab),
+            ("Dimensionality Reduction", self.create_dim_reduction_tab),
+            ("Reinforcement Learning", self.create_rl_tab),
+            ("Advanced Features", self.create_advanced_tab)  # New tab added here
+        ]
 
-    try:
-        var_threshold = self.pca_var_slider.value() / 100
-        pca = PCA(n_components=var_threshold)
-        pca.fit(self.X_train)
+        for tab_name, create_func in tabs:
+            scroll = QScrollArea()
+            tab_widget = create_func()
+            scroll.setWidget(tab_widget)
+            scroll.setWidgetResizable(True)
+            self.tab_widget.addTab(scroll, tab_name)
 
-        # Plot explained variance
-        self.figure.clear()
-        ax = self.figure.add_subplot(111)
+        self.layout.addWidget(self.tab_widget)
 
-        cumsum = np.cumsum(pca.explained_variance_ratio_)
-        ax.plot(range(1, len(cumsum) + 1), cumsum, 'b-o')
-        ax.axhline(y=var_threshold, color='r', linestyle='--')
-        ax.axvline(x=np.where(cumsum >= var_threshold)[0][0] + 1, color='g', linestyle='--')
+    def create_advanced_tab(self):
+        """Create the new advanced features tab"""
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
 
-        ax.set_title(f"Explained Variance (Threshold: {var_threshold * 100:.0f}%)")
-        ax.set_xlabel("Number of Components")
-        ax.set_ylabel("Cumulative Explained Variance")
-        ax.grid(True)
+        # Add all the new advanced components here
+        self.create_dim_reduction_advanced_group(layout)
+        self.create_clustering_advanced_group(layout)
+        self.create_validation_advanced_group(layout)
+        self.create_eigenvector_group(layout)
 
-        self.canvas.draw()
+        return widget
 
-        # Project data
-        X_pca = pca.transform(self.X_train)
-        self.status_bar.showMessage(
-            f"PCA reduced data from {self.X_train.shape[1]} to {X_pca.shape[1]} dimensions "
-            f"(explaining {cumsum[-1] * 100:.1f}% variance)"
+    def create_dim_reduction_advanced_group(self, parent_layout):
+        """Advanced dimensionality reduction components"""
+        group = QGroupBox("Advanced Dimensionality Reduction")
+        layout = QGridLayout()
+
+        # PCA with Explained Variance
+        pca_group = QGroupBox("PCA with Explained Variance")
+        pca_layout = QVBoxLayout()
+
+        self.pca_var_slider = QSlider(Qt.Orientation.Horizontal)
+        self.pca_var_slider.setRange(1, 100)
+        self.pca_var_slider.setValue(95)
+
+        self.pca_var_label = QLabel("Variance Threshold: 95%")
+        self.pca_var_slider.valueChanged.connect(
+            lambda: self.pca_var_label.setText(f"Variance Threshold: {self.pca_var_slider.value()}%")
         )
 
-    except Exception as e:
-        self.show_error(f"Error in PCA: {str(e)}")
+        pca_btn = QPushButton("Run PCA with Variance Threshold")
+        pca_btn.clicked.connect(self.run_pca_with_variance)
+
+        pca_layout.addWidget(self.pca_var_label)
+        pca_layout.addWidget(self.pca_var_slider)
+        pca_layout.addWidget(pca_btn)
+        pca_group.setLayout(pca_layout)
+        layout.addWidget(pca_group, 0, 0)
+
+        # [Rest of the advanced dimensionality reduction components...]
+
+        group.setLayout(layout)
+        parent_layout.addWidget(group)
+
+    def create_clustering_advanced_group(self, parent_layout):
+        """Advanced clustering components"""
+        group = QGroupBox("Advanced Clustering Techniques")
+        layout = QGridLayout()
+
+        # K-Means with Elbow Method
+        elbow_group = QGroupBox("K-Means with Elbow Method")
+        elbow_layout = QVBoxLayout()
+
+        self.max_clusters_spin = QSpinBox()
+        self.max_clusters_spin.setRange(2, 20)
+        self.max_clusters_spin.setValue(10)
+
+        elbow_btn = QPushButton("Find Optimal Clusters (Elbow Method)")
+        elbow_btn.clicked.connect(self.run_elbow_method)
+
+        elbow_layout.addWidget(QLabel("Max Clusters:"))
+        elbow_layout.addWidget(self.max_clusters_spin)
+        elbow_layout.addWidget(elbow_btn)
+        elbow_group.setLayout(elbow_layout)
+        layout.addWidget(elbow_group, 0, 0)
+
+        # [Rest of the advanced clustering components...]
+
+        group.setLayout(layout)
+        parent_layout.addWidget(group)
+
+    # [All the new advanced methods...]
+    def run_pca_with_variance(self):
+        """Run PCA with explained variance threshold"""
+        if self.X_train is None:
+            self.show_error("Please load data first!")
+            return
+
+        try:
+            var_threshold = self.pca_var_slider.value() / 100
+            pca = PCA(n_components=var_threshold)
+            pca.fit(self.X_train)
+
+            # Plot explained variance
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
+
+            cumsum = np.cumsum(pca.explained_variance_ratio_)
+            ax.plot(range(1, len(cumsum) + 1), cumsum, 'b-o')
+            ax.axhline(y=var_threshold, color='r', linestyle='--')
+            ax.axvline(x=np.where(cumsum >= var_threshold)[0][0] + 1, color='g', linestyle='--')
+
+            ax.set_title(f"Explained Variance (Threshold: {var_threshold * 100:.0f}%)")
+            ax.set_xlabel("Number of Components")
+            ax.set_ylabel("Cumulative Explained Variance")
+            ax.grid(True)
+
+            self.canvas.draw()
+
+            # Project data
+            X_pca = pca.transform(self.X_train)
+            self.status_bar.showMessage(
+                f"PCA reduced data from {self.X_train.shape[1]} to {X_pca.shape[1]} dimensions "
+                f"(explaining {cumsum[-1] * 100:.1f}% variance)"
+            )
+
+        except Exception as e:
+            self.show_error(f"Error in PCA: {str(e)}")
 
     def run_elbow_method(self):
-    """Run elbow method to find optimal number of clusters"""
-    if self.X_train is None:
-        self.show_error("Please load data first!")
-        return
+        """Run elbow method to find optimal number of clusters"""
+        if self.X_train is None:
+            self.show_error("Please load data first!")
+            return
 
-    try:
-        max_clusters = self.max_clusters_spin.value()
-        distortions = []
+        try:
+            max_clusters = self.max_clusters_spin.value()
+            distortions = []
 
-        for k in range(1, max_clusters + 1):
-            kmeans = KMeans(n_clusters=k, random_state=42)
-            kmeans.fit(self.X_train)
-            distortions.append(kmeans.inertia_)
+            for k in range(1, max_clusters + 1):
+                kmeans = KMeans(n_clusters=k, random_state=42)
+                kmeans.fit(self.X_train)
+                distortions.append(kmeans.inertia_)
 
-        # Plot elbow curve
-        self.figure.clear()
-        ax = self.figure.add_subplot(111)
+            # Plot elbow curve
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
 
-        ax.plot(range(1, max_clusters + 1), distortions, 'b-o')
-        ax.set_title('Elbow Method for Optimal k')
-        ax.set_xlabel('Number of clusters')
-        ax.set_ylabel('Distortion')
-        ax.grid(True)
+            ax.plot(range(1, max_clusters + 1), distortions, 'b-o')
+            ax.set_title('Elbow Method for Optimal k')
+            ax.set_xlabel('Number of clusters')
+            ax.set_ylabel('Distortion')
+            ax.grid(True)
 
-        self.canvas.draw()
-        self.status_bar.showMessage(
-            "Elbow method completed. Look for the 'elbow' point in the plot."
-        )
+            self.canvas.draw()
+            self.status_bar.showMessage(
+                "Elbow method completed. Look for the 'elbow' point in the plot."
+            )
 
-    except Exception as e:
-        self.show_error(f"Error in elbow method: {str(e)}")
+        except Exception as e:
+            self.show_error(f"Error in elbow method: {str(e)}")
 
 
 if __name__ == "__main__":
